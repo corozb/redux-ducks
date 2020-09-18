@@ -27,6 +27,11 @@ export default function reducer(state = initialData, action) {
 				...state,
 				...action.payload,
 			}
+		case 'POKE_INFO':
+			return {
+				...state,
+				pokeDetail: action.payload,
+			}
 		default:
 			return state
 	}
@@ -47,6 +52,7 @@ export const getPokemons = () => async (dispatch, getState) => {
 			const res = await axios.get(
 				'https://pokeapi.co/api/v2/pokemon?offset=0&limit=20'
 			)
+			console.log(res.data.results)
 			dispatch({
 				type: 'GET_POKEMONS',
 				payload: res.data,
@@ -102,5 +108,45 @@ export const prevPage = () => async (dispatch, getState) => {
 		} catch (error) {
 			console.log(error)
 		}
+	}
+}
+
+export const pokeDetail = (url) => async (dispatch, getState) => {
+	if (url === undefined) {
+		url = 'https://pokeapi.co/api/v2/pokemon/1/'
+	}
+
+	if (localStorage.getItem(url)) {
+		dispatch({
+			type: 'POKE_INFO',
+			payload: JSON.parse(localStorage.getItem(url)),
+		})
+		return
+	}
+
+	try {
+		const res = await axios.get(url)
+
+		dispatch({
+			type: 'POKE_INFO',
+			payload: {
+				name: res.data.name,
+				image: res.data.sprites.front_default,
+				height: res.data.height,
+				weight: res.data.weight,
+			},
+		})
+
+		localStorage.setItem(
+			url,
+			JSON.stringify({
+				name: res.data.name,
+				image: res.data.sprites.front_default,
+				height: res.data.height,
+				weight: res.data.weight,
+			})
+		)
+	} catch (error) {
+		console.log(error)
 	}
 }
