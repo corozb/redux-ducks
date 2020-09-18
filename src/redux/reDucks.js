@@ -2,7 +2,10 @@ import axios from 'axios'
 
 // constants
 const initialData = {
-	array: [],
+	count: 0,
+	next: null,
+	previous: null,
+	results: [],
 	offset: 0,
 }
 
@@ -12,19 +15,17 @@ export default function reducer(state = initialData, action) {
 		case 'GET_POKEMONS':
 			return {
 				...state,
-				array: action.payload,
+				...action.payload,
 			}
 		case 'NEXT_PAGE':
 			return {
 				...state,
-				array: action.payload.array,
-				offset: action.payload.offset,
+				...action.payload,
 			}
 		case 'PREV_PAGE':
 			return {
 				...state,
-				array: action.payload.array,
-				offset: action.payload.offset,
+				...action.payload,
 			}
 		default:
 			return state
@@ -32,56 +33,42 @@ export default function reducer(state = initialData, action) {
 }
 
 // actions
-export const getPokemons = () => async (dispatch, getState) => {
-	const { offset } = getState().pokemons
-
+export const getPokemons = () => async (dispatch) => {
 	try {
 		const res = await axios.get(
-			`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=20`
+			'https://pokeapi.co/api/v2/pokemon?offset=0&limit=20'
 		)
 		dispatch({
 			type: 'GET_POKEMONS',
-			payload: res.data.results,
+			payload: res.data,
 		})
 	} catch (error) {
 		console.log(error)
 	}
 }
 
-export const nextPage = (pagination) => async (dispatch, getState) => {
-	const { offset } = getState().pokemons
-	const next = offset + pagination
+export const nextPage = () => async (dispatch, getState) => {
+	const { next } = getState().pokemons
 
 	try {
-		const res = await axios.get(
-			`https://pokeapi.co/api/v2/pokemon?offset=${next}&limit=20`
-		)
+		const res = await axios.get(next)
 		dispatch({
 			type: 'NEXT_PAGE',
-			payload: {
-				array: res.data.results,
-				offset: next,
-			},
+			payload: res.data,
 		})
 	} catch (error) {
 		console.log(error)
 	}
 }
 
-export const prevPage = (pagination) => async (dispatch, getState) => {
-	const { offset } = getState().pokemons
-	const prev = offset - pagination
+export const prevPage = () => async (dispatch, getState) => {
+	const { previous } = getState().pokemons
 
 	try {
-		const res = await axios.get(
-			`https://pokeapi.co/api/v2/pokemon?offset=${prev}&limit=20`
-		)
+		const res = await axios.get(previous)
 		dispatch({
 			type: 'PREV_PAGE',
-			payload: {
-				array: res.data.results,
-				offset: prev,
-			},
+			payload: res.data,
 		})
 	} catch (error) {
 		console.log(error)
